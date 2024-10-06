@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #define MAX_STR_LEN 50
+#define MAX_ARRAY_LEN 10240
 
 typedef struct
 {
@@ -34,13 +35,20 @@ typedef union
 
 typedef struct
 {
-    char lastName[MAX_STR_LEN + 2];
-    char firstName[MAX_STR_LEN + 2];
+    char surname[MAX_STR_LEN + 2];
+    char name[MAX_STR_LEN + 2];
     char phoneNumber[MAX_STR_LEN + 2];
     adress_t adress;
     char status[MAX_STR_LEN + 2];
     info_t info;
 } person_t;
+
+typedef struct
+{
+    person_t array[MAX_ARRAY_LEN];
+    size_t size;
+} person_array_t;
+
 
 int read_person(FILE *f, person_t *person);
 

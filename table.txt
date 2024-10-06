@@ -1,0 +1,17 @@
+Ivanov
+Ivan
++79880000001
+Street
+1
+Друг
+1
+1
+2001
+Dmitrov
+Dmitriy
++79880000002
+Street
+2
+Коллега
+Middle
+Company
