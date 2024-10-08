@@ -2,13 +2,13 @@
 #define PERSON_H
 
 #include <stdio.h>
+#include "tools.h"
 
-#define MAX_STR_LEN 50
 #define MAX_ARRAY_LEN 10240
 
 typedef struct
 {
-    char street[MAX_STR_LEN + 2];
+    string_t street;
     int houseNumber;
 } adress_t;
 
@@ -21,8 +21,8 @@ typedef struct
 
 typedef struct
 {
-    char position[MAX_STR_LEN + 2];
-    char organization[MAX_STR_LEN + 2];
+    string_t position;
+    string_t organization;
 } work_t;
 
 
@@ -35,11 +35,11 @@ typedef union
 
 typedef struct
 {
-    char surname[MAX_STR_LEN + 2];
-    char name[MAX_STR_LEN + 2];
-    char phoneNumber[MAX_STR_LEN + 2];
+    string_t surname;
+    string_t name;
+    string_t phoneNumber;
     adress_t adress;
-    char status[MAX_STR_LEN + 2];
+    string_t status;
     info_t info;
 } person_t;
 
@@ -49,7 +49,20 @@ typedef struct
     size_t size;
 } person_array_t;
 
+typedef struct
+{
+    string_t key;
+    size_t index;
+} person_key_t;
 
-int read_person(FILE *f, person_t *person);
+typedef struct
+{
+    person_key_t array[MAX_ARRAY_LEN];
+    size_t size;
+} person_key_array_t;
+
+
+// mode f - без сопровождаемого текста, t - с текcтом
+int read_person(FILE *f, person_t *person, char mode);
 
 #endif

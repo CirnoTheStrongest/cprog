@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "person.h"
+#include "tools.h"
 
 #define SUCCESS_EXIT 0
 #define INCORRECT_STATUS_ERR 6
@@ -16,33 +17,41 @@
 #define INCORRECT_POSITION_ERROR 15
 #define INCORRECT_ORGANIZATION_ERROR 16
 
-static int read_surname(FILE *f, char *surname, size_t size)
+static int read_surname(FILE *f, string_t surname)
 {
-    if (!fgets(surname, size, f))
+    if (!fgets(surname, sizeof(string_t), f))
         return INCORRECT_SURNAME_ERR;
+
+    if (!strlen(surname))
+        return INCORRECT_SURNAME_ERR;
+
     if (surname[strlen(surname) - 1] == '\n')
         surname[strlen(surname) - 1] = '\0';
+
+    if (!strlen(surname))
+        return INCORRECT_SURNAME_ERR;
+
     return SUCCESS_EXIT;
 }
 
-static int read_name(FILE *f, char *name, size_t size)
+static int read_name(FILE *f, string_t name)
 {
-    if (!fgets(name, size, f))
+    if (!fgets(name, sizeof(string_t), f))
         return INCORRECT_NAME_ERROR;
     if (name[strlen(name) - 1] == '\n')
         name[strlen(name) - 1] = '\0';
     return SUCCESS_EXIT;
 }
 
-static int read_phone_number(FILE *f, char *number, size_t size)
+static int read_phone_number(FILE *f, string_t number)
 {
-    char *buf = malloc(size);
-    if (!fgets(buf, size, f))
+    string_t buf;
+    if (!fgets(buf, sizeof(string_t), f))
         return INCORRECT_NUMBER_ERROR;
 
     if (buf[strlen(buf) - 1] == '\n')
         buf[strlen(buf) - 1] = '\0';
-            
+
     // +79887105546 - номер телефона российский, с +7 + 10 цифр
     if (buf[0] != '+' || buf[1] != '7' || strlen(buf) != 12)
         return INCORRECT_NUMBER_ERROR;
@@ -53,8 +62,9 @@ static int read_phone_number(FILE *f, char *number, size_t size)
 
 static int read_adress(FILE *f, adress_t *adress)
 {
-    char *buf = malloc(sizeof(adress->street));
-    if (!fgets(buf, sizeof(adress->street), f))
+    int rc;
+    string_t buf;
+    if (!fgets(buf, sizeof(string_t), f))
         return INCORRECT_STREET_ERROR;
     if (!isupper(buf[0]))
         return INCORRECT_STREET_ERROR;
@@ -64,8 +74,12 @@ static int read_adress(FILE *f, adress_t *adress)
     strcpy(adress->street, buf);
 
     int houseNumber;
-    if (!fscanf(f, "%d\n", &houseNumber))
+    if (!fgets(buf, sizeof(string_t), f))
         return INCORRECT_HOUSE_NUMBER_ERROR;
+
+    if (rc = str_to_int(buf, &houseNumber))
+        return INCORRECT_HOUSE_NUMBER_ERROR;
+
     if (houseNumber < 1)
         return INCORRECT_HOUSE_NUMBER_ERROR;
     adress->houseNumber = houseNumber;
@@ -73,10 +87,10 @@ static int read_adress(FILE *f, adress_t *adress)
     return SUCCESS_EXIT;
 }
 
-static int read_status(FILE *f, char *status, size_t size)
+static int read_status(FILE *f, string_t status)
 {
-    char *buf = malloc(sizeof(size));
-    if (!fgets(buf, size, f))
+    string_t buf;
+    if (!fgets(buf, sizeof(string_t), f))
         return INCORRECT_STREET_ERROR;
 
     if (buf[strlen(buf) - 1] == '\n')
@@ -99,19 +113,31 @@ static int is_leap_year(int year)
 
 static int read_birthday(FILE *f, birthday_t *birthday)
 {
+    int rc;
+    string_t buf;
+
     int day;
-    if (fscanf(f, "%d\n", &day) != 1)
+    if (!fgets(buf, sizeof(buf), f))
+        return INCORRECT_DAY_ERROR;
+
+    if (rc = str_to_int(buf, &day))
         return INCORRECT_DAY_ERROR;
 
     int month;
-    if (fscanf(f, "%d\n", &month) != 1)
+    if (!fgets(buf, sizeof(buf), f))
+        return INCORRECT_MONTH_ERROR;
+
+    if (rc = str_to_int(buf, &month))
         return INCORRECT_MONTH_ERROR;
 
     int year;
-    if (fscanf(f, "%d\n", &year) != 1)
+    if (!fgets(buf, sizeof(buf), f))
         return INCORRECT_YEAR_ERROR;
 
-    if (year < 1920)
+    if (rc = str_to_int(buf, &year))
+        return INCORRECT_YEAR_ERROR;
+
+    if (year < 1920 || year > 2010)
         return INCORRECT_YEAR_ERROR;
     int is_leap = year % 4;
 
@@ -133,16 +159,16 @@ static int read_birthday(FILE *f, birthday_t *birthday)
 
 static int read_work(FILE *f, work_t *work)
 {
-    char *buf = malloc(sizeof(work->position));
+    string_t buf;
 
-    if (!fgets(buf, sizeof(work->position), f))
+    if (!fgets(buf, sizeof(string_t), f))
         return INCORRECT_POSITION_ERROR;
 
     if (buf[strlen(buf) - 1] == '\n')
         buf[strlen(buf) - 1] = '\0';
     strcpy(work->position, buf);
 
-    if (!fgets(buf, sizeof(work->position), f))
+    if (!fgets(buf, sizeof(string_t), f))
         return INCORRECT_ORGANIZATION_ERROR;
 
     if (buf[strlen(buf) - 1] == '\n')
@@ -152,25 +178,47 @@ static int read_work(FILE *f, work_t *work)
     return SUCCESS_EXIT;
 }
 
-static int read_info(FILE *f, info_t *info, char *status)
+static int read_info(FILE *f, info_t *info, string_t status)
 {
     if (!strcmp(status, "Друг"))
         read_birthday(f, &info->birthday);
     else
         read_work(f, &info->work);
+
+    return SUCCESS_EXIT;
 }
 
-int read_person(FILE *f, person_t *person)
+int read_person(FILE *f, person_t *person, char mode)
 {
-    read_surname(f, person->surname, sizeof(person->surname));
+    int rc;
+    if (mode == 't')
+        puts("Введите фамилию абонента:");
+    if (rc = read_surname(f, person->surname))
+        return rc;
 
-    read_name(f, person->name, sizeof(person->name));
+    if (mode == 't')
+        puts("Введите имя абонента:");
+    read_name(f, person->name);
 
-    read_phone_number(f, person->phoneNumber, sizeof(person->phoneNumber));
+    if (mode == 't')
+        puts("Введите номер абонента в формате +7**********:");
+    read_phone_number(f, person->phoneNumber);
 
+    if (mode == 't')
+        puts("Введите улицу и номер дома абонента через Enter:");
     read_adress(f, &person->adress);
 
-    read_status(f, person->status, sizeof(person->status));
+    if (mode == 't')
+        puts("Введите статус абонента:");
+    read_status(f, person->status);
 
+    if (mode == 't')
+    {
+        if (!strcmp(person->status, "Друг"))
+            puts("Введите день, месяц и год рождения абонента через Enter:");
+        else
+            puts("Введите должность и организацию абонента через Enter:");
+    }
     read_info(f, &person->info, person->status);
+    return SUCCESS_EXIT;
 }

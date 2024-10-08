@@ -1,12 +1,34 @@
-#include "person.h"
-#include "table.h"
+#include <stdlib.h>
+#include "interface.h"
 
 int main(void)
-{
-    FILE *f = fopen("table.txt", "r");
+{   
+    int rc;
     person_array_t person_array;
-    person_array.size = 0;
-    read_person(f, &person_array.array[person_array.size++]);
-    read_person(f, &person_array.array[person_array.size++]);
-    draw_table(person_array);
+    person_key_array_t person_key_array;
+    file_t filename;
+    int action;
+
+    action = input_start_action();
+
+    if (rc = do_start_action(action, filename))
+    {
+        if (rc == EXIT_CODE)
+            return 0;
+        return rc;
+    }
+
+    while (1)
+    {
+        action = input_action();
+
+        if (rc = do_action(action, filename, &person_array, &person_key_array))
+        {
+            if (rc == EXIT_CODE)
+                return 0;
+            return rc;
+        }
+    }
+
+    return 0;
 }

@@ -1,0 +1,114 @@
+#include "interface.h"
+#include "file.h"
+#include "person.h"
+#include "table.h"
+#include "tools.h"
+
+#define SUCCESS_CODE 0
+#define EXIT_CODE 400
+#define INCORRECT_ACTION_ERROR 401
+
+static void show_start_actions(void)
+{
+    puts("Доступные действия:");
+    puts("1. Инициализировать файл.");
+    puts("2. Выйти из программы.");
+}
+
+int input_start_action(void)
+{
+    string_t buf;
+    int action;
+    show_start_actions();
+    puts("Введите требуемое действие:");
+    if (!fgets(buf, sizeof(string_t), stdin))
+        return INCORRECT_ACTION_ERROR;
+
+    if (str_to_int(buf, &action))
+        return INCORRECT_ACTION_ERROR;
+    return action;
+}
+
+static void show_actions(void)
+{
+    puts("Доступные действия:");
+    puts("1. Прочитать файл в базу данных.");
+    puts("2. Записать в файл базу данных.");
+    puts("3. Вывести базу данных.");
+    puts("4. Вывести таблицу ключей.");
+    puts("5. Добавить запись в базу данных.");
+    puts("6. Удалить запись из базы данных.");
+    puts("7. Отсортировать базу данных по фамилии абонента.");
+    puts("8. Вывести базу данных по таблице ключей.");
+    puts("9. Отсортировать таблицу ключей.");
+    puts("10. Вывод базы данных по таблице ключей.");
+    puts("11. Вывести список друзей, которых надо поздравить с Днём Рождения.");
+    puts("12. Исследование времени работы сортировок.");
+    puts("13. Выйти из программы.");
+    puts("2. Выйти из программы.");
+    puts("2. Выйти из программы.");
+    puts("2. Выйти из программы.");
+}
+
+int input_action(void)
+{
+    string_t buf;
+    int action;
+    show_actions();
+    puts("Введите требуемое действие:");
+    if (!fgets(buf, sizeof(string_t), stdin))
+        return INCORRECT_ACTION_ERROR;
+
+    if (str_to_int(buf, &action))
+        return INCORRECT_ACTION_ERROR;
+    
+    return action;
+}
+
+int do_start_action(int action, file_t filename)
+{
+    switch (action)
+    {
+    case 1:
+        init_file(filename);
+        break;
+    case 2:
+        return EXIT_CODE;
+    default:
+        return INCORRECT_ACTION_ERROR;
+    }
+    return SUCCESS_CODE;
+}
+
+int do_action(int action, file_t filename, person_array_t *person_array, person_key_array_t *person_key_array)
+{
+    switch (action)
+    {
+    case 1:
+        update_database(filename, person_array);
+        create_key_table(person_key_array, *person_array);
+        break;
+    case 2:
+        update_file(filename, *person_array);
+        break;
+    case 3:
+        draw_table(*person_array);
+        break;
+    case 4:
+        draw_key_table(*person_key_array);
+        break;
+    case 5:
+        add_person_with_terminal(person_array);
+        create_key_table(person_key_array, *person_array);
+        break;
+    case 6:
+        delete_person_by_surname(person_array);
+        create_key_table(person_key_array, *person_array);
+        break;
+    case 7:
+        break;
+    default:
+        return INCORRECT_ACTION_ERROR;
+    }
+    return SUCCESS_CODE;
+}
