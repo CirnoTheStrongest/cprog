@@ -67,27 +67,29 @@ int do_start_action(int action, file_t filename)
     switch (action)
     {
     case 1:
-        init_file(filename);
-        break;
+        return init_file(filename);
     case 2:
         return EXIT_CODE;
     default:
-        return INCORRECT_ACTION_ERROR;
+        puts("Некорректный номер действия!");
+        action = input_start_action();
+        return do_start_action(action, filename);
     }
     return SUCCESS_CODE;
 }
 
 int do_action(int action, file_t filename, person_array_t *person_array, person_key_array_t *person_key_array, file_t output)
 {
+    int rc;
     switch (action)
     {
     case 1:
-        update_database(filename, person_array);
+        if (rc = update_database(filename, person_array))
+            return rc;
         create_key_table(person_key_array, *person_array);
         break;
     case 2:
-        update_file(filename, *person_array);
-        break;
+        return update_file(filename, *person_array);
     case 3:
         draw_table(*person_array);
         break;
@@ -95,11 +97,13 @@ int do_action(int action, file_t filename, person_array_t *person_array, person_
         draw_key_table(*person_key_array);
         break;
     case 5:
-        add_person_with_terminal(person_array);
+        if (rc = add_person_with_terminal(person_array))
+            return rc;
         create_key_table(person_key_array, *person_array);
         break;
     case 6:
-        delete_person_by_surname(person_array);
+        if (rc = delete_person_by_surname(person_array))
+            return rc;
         create_key_table(person_key_array, *person_array);
         break;
     case 7:
@@ -116,7 +120,8 @@ int do_action(int action, file_t filename, person_array_t *person_array, person_
         draw_nearest_birthdays(person_array);
         break;
     case 11:
-        init_file(output);
+        if (rc = init_file(output))
+            return rc;
         test_sort_time(person_array, person_key_array, filename, 'f', output);
         break;
     case 12:
@@ -126,7 +131,9 @@ int do_action(int action, file_t filename, person_array_t *person_array, person_
         puts("Завершение программы...");
         return EXIT_CODE;
     default:
-        return INCORRECT_ACTION_ERROR;
+        puts("Некорректный номер действия!");
+        action = input_action();
+        return do_action(action, filename, person_array, person_key_array, output);
     }
     return SUCCESS_CODE;
 }

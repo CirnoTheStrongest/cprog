@@ -138,3 +138,46 @@ int is_date_this_week(date_t date, date_t date_s)
     }
     return 0;
 }
+
+/*
+Функция форматирует строку string к требуемому программой виду и копирует ее в dst.
+Возвращает 0 при успешном форматировании, иначе err
+*/
+int format_string(string_t string, string_t dst, int err)
+{
+    if (!strlen(string))
+        return err;
+
+    if (string[strlen(string) - 1] == '\n')
+        string[strlen(string) - 1] = '\0';
+
+    if (!strlen(string))
+        return err;
+
+    for (size_t i = 0; i < strlen(string); i++)
+    {
+        if (!(string[i] >= 'A' && string[i] <= 'Z') && !(string[i] >= 'a' && string[i] <= 'z'))
+            return err;
+    }
+
+    strcpy(dst, string);
+    return SUCCESS_EXIT;
+}
+
+int format_number(string_t string, string_t dst, int err)
+{
+    if (string[strlen(string) - 1] == '\n')
+        string[strlen(string) - 1] = '\0';
+
+    if (string[0] != '+' || string[1] != '7' || strlen(string) != 12)
+        return err;
+
+    for (size_t i = 2; i < strlen(string); i++)
+    {
+        if (!(string[i] >= '0' && string[i] <= '9'))
+            return err;
+    }
+
+    strcpy(dst, string);
+    return SUCCESS_EXIT;
+}

@@ -17,5 +17,7 @@ int str_to_int(char *str, int *num);
 int read_date(FILE *f, date_t *date);
 int is_leap_year(int year);
 int is_date_this_week(date_t date, date_t date_s);
+int format_string(string_t string, string_t dst, int err);
+int format_number(string_t string, string_t dst, int err);
 
 #endif

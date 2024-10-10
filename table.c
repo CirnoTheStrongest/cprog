@@ -8,6 +8,7 @@
 #define SUCCESS_EXIT 0
 #define ARR_OVERFLOW_ERROR 100
 #define DELETE_ERROR 101
+#define EMPTY_FILE_ERROR 102
 
 /*
       20                      20                14*           20                    9*            40
@@ -65,6 +66,12 @@ static void draw_key_table_element(const person_key_t person)
 
 void draw_table(person_array_t person_array)
 {
+    if (!person_array.size)
+    {
+        puts("База данных пуста.");
+        return;
+    }
+
     draw_table_head();
     for (size_t i = 0; i < person_array.size; i++)
         draw_table_element(person_array.array[i]);
@@ -72,6 +79,12 @@ void draw_table(person_array_t person_array)
 
 void draw_key_table(person_key_array_t person_key_array)
 {
+    if (!person_key_array.size)
+    {
+        puts("Таблица ключей пуста.");
+        return;
+    }
+
     draw_key_table_head();
     for (size_t i = 0; i < person_key_array.size; i++)
         draw_key_table_element(person_key_array.array[i]);
@@ -105,6 +118,12 @@ static int compare_keys(person_key_t p1, person_key_t p2)
 
 void sort_table_by_surname_with_bubblesort(person_array_t *person_array)
 {
+    if (!person_array->size)
+    {
+        puts("База данных пуста.");
+        return;
+    }
+
     int res = 0;
     for (size_t i = 0; i < person_array->size - 1; i++)
     {
@@ -138,19 +157,31 @@ int add_person_from_file(FILE *f, person_array_t *person_array)
 
 int update_database(file_t file, person_array_t *person_array)
 {
-    int rc = 0;
+    int rc;
     FILE *f = fopen(file, "r");
+
     person_array->size = 0;
 
+    rc = add_person_from_file(f, person_array);
     while (!rc)
-    {
         rc = add_person_from_file(f, person_array);
+    if (rc != INCORRECT_SURNAME_ERR)
+    {
+        puts("Нарушена структура файла!");
+        fclose(f);
+        return rc;
     }
 
     if (feof(f))
         rc = SUCCESS_EXIT;
 
     fclose(f);
+
+    if (rc == ARR_OVERFLOW_ERROR)
+        puts("Произошло переполнение базы данных!");
+
+    if (person_array->size == 0)
+        puts("Файл пустой.");
     return rc;
 }
 
@@ -179,9 +210,19 @@ static int write_person_in_file(FILE *f, person_t person)
 
 int update_file(file_t file, person_array_t person_array)
 {
+    if (!person_array.size)
+    {
+        puts("База данных пуста.");
+        return SUCCESS_EXIT;
+    }
+
     FILE *f = fopen(file, "w");
+
     for (size_t i = 0; i < person_array.size; i++)
         write_person_in_file(f, person_array.array[i]);
+    
+    fclose(f);
+    
     return SUCCESS_EXIT;
 }
 
@@ -193,6 +234,12 @@ static void create_key(person_key_t *person_key, const string_t sn, size_t index
 
 void create_key_table(person_key_array_t *person_key_array, const person_array_t person_array)
 {
+    if (!person_array.size)
+    {
+        puts("Таблица ключей не может быть создана из-за отсутствия записей в базе данных.");
+        return;
+    }
+
     person_key_array->size = 0;
     for (size_t i = 0; i < person_array.size; i++)
     {
@@ -205,6 +252,12 @@ void create_key_table(person_key_array_t *person_key_array, const person_array_t
 
 void sort_key_table_with_bubblesort(person_key_array_t *person_key_array)
 {
+    if (!person_key_array->size)
+    {
+        puts("База данных пуста.");
+        return;
+    }
+
     int res = 0;
     for (size_t i = 0; i < person_key_array->size - 1; i++)
     {
@@ -219,12 +272,18 @@ void sort_key_table_with_bubblesort(person_key_array_t *person_key_array)
 
 int delete_person_by_surname(person_array_t *person_array)
 {
+    if (!person_array->size)
+    {
+        puts("База данных пуста.");
+        return SUCCESS_EXIT;
+    }
+
     string_t surname;
     puts("Введите фамилию абонента, которого требуется удалить:");
     fgets(surname, sizeof(string_t), stdin);
 
-        if (surname[strlen(surname) - 1] == '\n')
-            surname[strlen(surname) - 1] = '\0';
+    if (surname[strlen(surname) - 1] == '\n')
+        surname[strlen(surname) - 1] = '\0';
 
     int indices[MAX_ARRAY_LEN];
     int index = -1;
@@ -266,12 +325,18 @@ int delete_person_by_surname(person_array_t *person_array)
 
 void draw_table_by_key_table(person_array_t *person_array, person_key_array_t *person_key_array)
 {
+    if (!person_array->size)
+    {
+        puts("База данных пуста.");
+        return;
+    }
+
     draw_table_head();
     for (size_t i = 0; i < person_array->size; i++)
         draw_table_element(person_array->array[person_key_array->array[i].index]);
 }
 
-int input_date(date_t *date)
+static int input_date(date_t *date)
 {
     puts("Введите число, месяц и год через Enter:");
     return read_date(stdin, date);
@@ -282,6 +347,12 @@ int input_date(date_t *date)
 */
 void draw_nearest_birthdays(person_array_t *person_array)
 {
+    if (!person_array->size)
+    {
+        puts("База данных пуста.");
+        return;
+    }
+    
     date_t date;
     size_t count = 0;
     input_date(&date);
@@ -359,7 +430,7 @@ void fill_random(file_t filename, int n, char mode)
 
         for (size_t j = 0; j < size; j++)
         {
-            char ch = rand() % ('z' - 'A' + 1) + 'A';
+            char ch = rand() % ('Z' - 'A' + 1) + 'A';
             buf[j] = ch;
         }
         buf[size] = '\0';
@@ -370,7 +441,7 @@ void fill_random(file_t filename, int n, char mode)
 
         for (size_t j = 0; j < size; j++)
         {
-            char ch = rand() % ('z' - 'A' + 1) + 'A';
+            char ch = rand() % ('Z' - 'A' + 1) + 'A';
             buf[j] = ch;
         }
         buf[size] = '\0';
@@ -392,7 +463,7 @@ void fill_random(file_t filename, int n, char mode)
 
         for (size_t j = 0; j < size; j++)
         {
-            char ch = rand() % ('z' - 'A' + 1) + 'A';
+            char ch = rand() % ('Z' - 'A' + 1) + 'A';
             buf[j] = ch;
         }
         buf[size] = '\0';
@@ -420,7 +491,7 @@ void fill_random(file_t filename, int n, char mode)
 
             for (size_t j = 0; j < size; j++)
             {
-                char ch = rand() % ('z' - 'A' + 1) + 'A';
+                char ch = rand() % ('Z' - 'A' + 1) + 'A';
                 buf[j] = ch;
             }
             buf[size] = '\0';
@@ -431,7 +502,7 @@ void fill_random(file_t filename, int n, char mode)
 
             for (size_t j = 0; j < size; j++)
             {
-                char ch = rand() % ('z' - 'A' + 1) + 'A';
+                char ch = rand() % ('Z' - 'A' + 1) + 'A';
                 buf[j] = ch;
             }
             buf[size] = '\0';
@@ -444,14 +515,14 @@ void fill_random(file_t filename, int n, char mode)
     fclose(f);
 }
 
-void draw_test_head(void)
+static void draw_test_head(void)
 {
     printf("---------------------------------------------------------------\n"
            "|  size   | bubblesort | quicksort  | key_bsort  | key_qsort  |\n"
            "---------------------------------------------------------------\n");
 }
 
-void draw_test_result(size_t n, time_t result1, time_t result2, time_t result3, time_t result4)
+static void draw_test_result(size_t n, time_t result1, time_t result2, time_t result3, time_t result4)
 {
     printf("| %7ld | %10ld | %10ld | %10ld | %10ld |\n"
            "---------------------------------------------------------------\n",
