@@ -12,12 +12,7 @@ typedef struct
     int houseNumber;
 } adress_t;
 
-typedef struct
-{
-    int day;
-    int month;
-    int year;
-} birthday_t;
+typedef date_t birthday_t;
 
 typedef struct
 {

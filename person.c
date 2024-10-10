@@ -66,8 +66,8 @@ static int read_adress(FILE *f, adress_t *adress)
     string_t buf;
     if (!fgets(buf, sizeof(string_t), f))
         return INCORRECT_STREET_ERROR;
-    if (!isupper(buf[0]))
-        return INCORRECT_STREET_ERROR;
+    //if (!isupper(buf[0]))
+    //    return INCORRECT_STREET_ERROR;
 
     if (buf[strlen(buf) - 1] == '\n')
         buf[strlen(buf) - 1] = '\0';
@@ -96,7 +96,7 @@ static int read_status(FILE *f, string_t status)
     if (buf[strlen(buf) - 1] == '\n')
         buf[strlen(buf) - 1] = '\0';
 
-    if (strcmp(buf, "Друг") && strcmp(buf, "Коллега"))
+    if (strcmp(buf, "Friend") && strcmp(buf, "Partner"))
         return INCORRECT_STREET_ERROR;
 
     strcpy(status, buf);
@@ -104,57 +104,9 @@ static int read_status(FILE *f, string_t status)
     return SUCCESS_EXIT;
 }
 
-static int is_leap_year(int year)
-{
-    if (year % 4)
-        return 0;
-    return 1;
-}
-
 static int read_birthday(FILE *f, birthday_t *birthday)
 {
-    int rc;
-    string_t buf;
-
-    int day;
-    if (!fgets(buf, sizeof(buf), f))
-        return INCORRECT_DAY_ERROR;
-
-    if (rc = str_to_int(buf, &day))
-        return INCORRECT_DAY_ERROR;
-
-    int month;
-    if (!fgets(buf, sizeof(buf), f))
-        return INCORRECT_MONTH_ERROR;
-
-    if (rc = str_to_int(buf, &month))
-        return INCORRECT_MONTH_ERROR;
-
-    int year;
-    if (!fgets(buf, sizeof(buf), f))
-        return INCORRECT_YEAR_ERROR;
-
-    if (rc = str_to_int(buf, &year))
-        return INCORRECT_YEAR_ERROR;
-
-    if (year < 1920 || year > 2010)
-        return INCORRECT_YEAR_ERROR;
-    int is_leap = year % 4;
-
-    if (month < 1 || month > 12)
-        return INCORRECT_MONTH_ERROR;
-    
-    if (day < 1 || day > 31)
-        return INCORRECT_DAY_ERROR;
-    
-    int max_days[] = {31, 28 + is_leap_year(year), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-    if (day > max_days[month - 1])
-        return INCORRECT_DAY_ERROR;
-
-    birthday->day = day;
-    birthday->month = month;
-    birthday->year = year;
+    return read_date(f, birthday);
 }
 
 static int read_work(FILE *f, work_t *work)
@@ -180,7 +132,7 @@ static int read_work(FILE *f, work_t *work)
 
 static int read_info(FILE *f, info_t *info, string_t status)
 {
-    if (!strcmp(status, "Друг"))
+    if (!strcmp(status, "Friend"))
         read_birthday(f, &info->birthday);
     else
         read_work(f, &info->work);
@@ -214,7 +166,7 @@ int read_person(FILE *f, person_t *person, char mode)
 
     if (mode == 't')
     {
-        if (!strcmp(person->status, "Друг"))
+        if (!strcmp(person->status, "Friend"))
             puts("Введите день, месяц и год рождения абонента через Enter:");
         else
             puts("Введите должность и организацию абонента через Enter:");

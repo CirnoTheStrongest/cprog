@@ -12,6 +12,6 @@
 int input_start_action(void);
 int input_action(void);
 int do_start_action(int action, file_t filename);
-int do_action(int action, file_t filename, person_array_t *person_array, person_key_array_t *person_key_array);
+int do_action(int action, file_t filename, person_array_t *person_array, person_key_array_t *person_key_array, file_t output);
 
 #endif

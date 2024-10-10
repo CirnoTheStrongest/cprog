@@ -41,13 +41,10 @@ static void show_actions(void)
     puts("7. Отсортировать базу данных по фамилии абонента.");
     puts("8. Вывести базу данных по таблице ключей.");
     puts("9. Отсортировать таблицу ключей.");
-    puts("10. Вывод базы данных по таблице ключей.");
-    puts("11. Вывести список друзей, которых надо поздравить с Днём Рождения.");
-    puts("12. Исследование времени работы сортировок.");
+    puts("10. Вывести список друзей, которых надо поздравить с Днём Рождения.");
+    puts("11. Исследование времени работы сортировок.");
+    puts("12. Заполнить таблицу случайными числами.");
     puts("13. Выйти из программы.");
-    puts("2. Выйти из программы.");
-    puts("2. Выйти из программы.");
-    puts("2. Выйти из программы.");
 }
 
 int input_action(void)
@@ -80,7 +77,7 @@ int do_start_action(int action, file_t filename)
     return SUCCESS_CODE;
 }
 
-int do_action(int action, file_t filename, person_array_t *person_array, person_key_array_t *person_key_array)
+int do_action(int action, file_t filename, person_array_t *person_array, person_key_array_t *person_key_array, file_t output)
 {
     switch (action)
     {
@@ -106,7 +103,28 @@ int do_action(int action, file_t filename, person_array_t *person_array, person_
         create_key_table(person_key_array, *person_array);
         break;
     case 7:
+        sort_table_by_surname_with_bubblesort(person_array);
+        create_key_table(person_key_array, *person_array);
         break;
+    case 8:
+        draw_table_by_key_table(person_array, person_key_array);
+        break;
+    case 9:
+        sort_key_table_with_bubblesort(person_key_array);
+        break;
+    case 10:
+        draw_nearest_birthdays(person_array);
+        break;
+    case 11:
+        init_file(output);
+        test_sort_time(person_array, person_key_array, filename, 'f', output);
+        break;
+    case 12:
+        fill_random(filename, 0, 't');
+        break;
+    case 13:
+        puts("Завершение программы...");
+        return EXIT_CODE;
     default:
         return INCORRECT_ACTION_ERROR;
     }
