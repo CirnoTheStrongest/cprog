@@ -60,7 +60,7 @@ static int read_adress(FILE *f, adress_t *adress)
     if (rc = str_to_int(buf, &houseNumber))
         return INCORRECT_HOUSE_NUMBER_ERROR;
 
-    if (houseNumber < 1)
+    if (houseNumber < 1 || houseNumber > 1000)
         return INCORRECT_HOUSE_NUMBER_ERROR;
     adress->houseNumber = houseNumber;
 
