@@ -138,7 +138,12 @@ void sort_table_by_surname_with_bubblesort(person_array_t *person_array)
 
 int add_person_with_terminal(person_array_t *person_array)
 {
-    read_person(stdin, &person_array->array[person_array->size++], 't');
+    int rc;
+    if (rc = read_person(stdin, &person_array->array[person_array->size++], 't'))
+    {
+        puts("Некорректные данные пользователя!");
+        return rc;
+    }
 }
 
 int add_person_from_file(FILE *f, person_array_t *person_array)
@@ -285,6 +290,12 @@ int delete_person_by_surname(person_array_t *person_array)
     if (surname[strlen(surname) - 1] == '\n')
         surname[strlen(surname) - 1] = '\0';
 
+    if (!strlen(surname))
+    {
+        puts("Фамилия пользователя не должна быть пустой!");
+        return DELETE_ERROR;
+    }
+
     int indices[MAX_ARRAY_LEN];
     int index = -1;
     size_t count = 0;
@@ -314,13 +325,16 @@ int delete_person_by_surname(person_array_t *person_array)
     else if (count == 1)
         index = indices[0];
     else
+    {
+        puts("Данный пользователь не найден!");
         return DELETE_ERROR;
+    }
 
     person_array->size--;
     for (size_t i = index; i < person_array->size; i++)
         person_array->array[i] = person_array->array[i + 1];
     
-    return index;
+    return SUCCESS_EXIT;
 }
 
 void draw_table_by_key_table(person_array_t *person_array, person_key_array_t *person_key_array)
@@ -353,9 +367,14 @@ void draw_nearest_birthdays(person_array_t *person_array)
         return;
     }
     
+    int rc;
     date_t date;
     size_t count = 0;
-    input_date(&date);
+    if (rc = input_date(&date))
+    {
+        puts("Некорректный ввод даты!");
+        return;
+    }
 
     for (size_t i = 0; i < person_array->size; i++)
     {

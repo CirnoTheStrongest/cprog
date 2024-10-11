@@ -57,7 +57,7 @@ int read_date(FILE *f, date_t *date)
     if (rc = str_to_int(buf, &year))
         return INCORRECT_YEAR_ERROR;
 
-    if (year < 1920)
+    if (year < 1920 || year > 2100)
         return INCORRECT_YEAR_ERROR;
     int is_leap = year % 4;
 

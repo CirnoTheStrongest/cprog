@@ -14,6 +14,8 @@ int main(void)
     file_t filename;
     file_t output;
 
+    print_info();
+
     action = input_start_action();
 
     if (rc = do_start_action(action, filename))
